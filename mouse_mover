@@ -1,0 +1,68 @@
+"""
+
+This program prevents computer from entering sleep and prevents messengers from
+showing "Status Away." There are two ways to active,
+1: Putting cousor at top of screen where y = 0,
+2: By not moving mouse for SET_TIME.
+
+Program runs continously with a counsel window showing "On." Program will crash
+when cousor location in top left corner, (0,0), or computer is locked.
+Set pyautogui.FAILSAFE = False to disable. Program would then persist after computer
+is locked
+
+Must import windll.SetCurorPos() for multiple monitors. pyautogui can't handle this.
+
+***Recommend no windows are full screen because they will be clicked***
+
+"""
+
+import pyautogui, time
+from ctypes import windll
+
+pyautogui.FAILSAFE = True
+
+SET_TIME = 150
+
+print("On")
+
+def move_click(num):
+    """
+    Records coursor location, moves x position, num pixels.
+    Redundant if statement prevents lagging clicks when coursor moved from top of
+    screen. Returns nothing.
+    """
+    x, y = pyautogui.position()
+    windll.user32.SetCursorPos(int(str(x).rjust(4))+num,int(str(y).rjust(4)))
+    if(int(str(y).rjust(4))==0):
+        pyautogui.click()
+        time.sleep(.25)
+
+while(True):
+    x, y = pyautogui.position()
+    time.sleep(.25) #Required to record that the cursor has moved.
+    x2, y2 = pyautogui.position()
+
+    ###Main program driver####
+    if(int(str(y).rjust(4))==0):
+        move_click(1)
+        time.sleep(.25) #Creates 50% duty cycle of cursor movement.
+        move_click(-1)
+
+    start_time = time.time()
+    stop_watch = 0
+    while(y==y2 and int(str(y).rjust(4))!=0):
+        """
+        Times how long program has been in while loop. If stop_watch exceeds
+        SET_TIME, cursor Y location is set to ZERO, breaking out of loop, and
+        starts main program driver.
+        """
+        new_time = time.time()
+        stop_watch = new_time - start_time
+        if(stop_watch >= SET_TIME):
+            windll.user32.SetCursorPos(int(str(x).rjust(4)),0)
+            break
+        x, y = pyautogui.position()
+        time.sleep(.25)
+        x2, y2 = pyautogui.position()
+
+    end_time = time.time()
